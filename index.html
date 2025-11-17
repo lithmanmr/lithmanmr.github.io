@@ -351,6 +351,17 @@
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(26, 54, 93, 0.4);
         }
+
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #2f855a;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(56, 161, 105, 0.4);
+        }
         
         .hidden {
             display: none;
@@ -1326,6 +1337,11 @@
                 <i class="fas fa-file-pdf"></i>
                 Generar PDF
             </button>
+
+            <button class="btn-success hidden" id="sharePdfBtn">
+                <i class="fas fa-share-alt"></i>
+                Compartir PDF
+    </button>
         </div>
         
         <div id="pdfPreview" class="hidden">
@@ -1595,6 +1611,10 @@
         const resetBtn = document.getElementById('resetBtn');
         const previewBtn = document.getElementById('previewBtn');
         const generatePdfBtn = document.getElementById('generatePdfBtn');
+        const sharePdfBtn = document.getElementById('sharePdfBtn');
+
+        let currentPdfBlob = null;
+        let currentPdfName = null;
         
         const pdfPreview = document.getElementById('pdfPreview');
         const previewDate = document.getElementById('previewDate');
@@ -1824,7 +1844,7 @@
             });
         }
         
-        function generatePDF() {
+        async function generatePDF() {
             if (!clientName.value || !serviceType.value || !startDate.value || !endDate.value) {
                 alert('Por favor, complete todos los campos requeridos antes de generar el PDF.');
                 return;
@@ -2234,17 +2254,104 @@
             doc.text('C tours | +51 992 248 858 | www.agenciactours.com', 105, 285, { align: 'center' });
             doc.text('Página 3 de 3', 195, 285, { align: 'right' });
             
-            // Guardar
-            doc.save(`Cotizacion_CTours_${quoteNum}.pdf`);
+            // AQUÍ VA EL NUEVO CÓDIGO (reemplaza el doc.save anterior)
+            // Generar el PDF como Blob
+            const pdfBlob = doc.output('blob');
+            const fileName = `Cotizacion_CTours_${quoteNum}.pdf`;
+
+            // Guardar para compartir después
+            currentPdfBlob = pdfBlob;
+            currentPdfName = fileName;
+
+            // Mostrar botón de compartir
+            sharePdfBtn.classList.remove('hidden');
+
+            // Descargar automáticamente
+            doc.save(fileName);
+
+            // Verificar si el dispositivo soporta Web Share API
+            if (navigator.share) {
+                // Mostrar mensaje de éxito con opción de compartir
+                setTimeout(() => {
+                    if (confirm('✅ PDF generado exitosamente.\n\n¿Desea compartirlo ahora por WhatsApp, correo u otras aplicaciones?')) {
+                        sharePdf();
+                    }
+                }, 500);
+            } else {
+                alert('✅ PDF generado y descargado exitosamente.\n\nPuede encontrarlo en sus descargas.');
+            }
         };
 
         // Si hay error al cargar la imagen, generar PDF sin logo
-        img.onerror = function() {
+        img.onerror = async function() {
             console.warn('No se pudo cargar el logo, generando PDF sin imagen');
-            generarPDFSinLogo(doc, azulOscuro, dorado, gris);
+            
+            const pdfBlob = doc.output('blob');
+            const fileName = `Cotizacion_CTours_${quoteNum}.pdf`;
+            
+            currentPdfBlob = pdfBlob;
+            currentPdfName = fileName;
+            sharePdfBtn.classList.remove('hidden');
+            
+            doc.save(fileName);
+            
+            if (navigator.share) {
+                setTimeout(() => {
+                    if (confirm('✅ PDF generado exitosamente.\n\n¿Desea compartirlo ahora?')) {
+                        sharePdf();
+                    }
+                }, 500);
+            } else {
+                alert('✅ PDF generado y descargado exitosamente.');
+            }
         };
     }
         
+        async function sharePdf() {
+            if (!currentPdfBlob || !currentPdfName) {
+                alert('Primero debe generar el PDF.');
+                return;
+            }
+            
+            try {
+                const file = new File([currentPdfBlob], currentPdfName, { type: 'application/pdf' });
+                
+                if (navigator.share && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: 'Cotización C tours E.I.R.L',
+                        text: 'Cotización de servicios de movilización',
+                        files: [file]
+                    });
+                    console.log('PDF compartido exitosamente');
+                } else if (navigator.share) {
+                    const url = URL.createObjectURL(currentPdfBlob);
+                    await navigator.share({
+                        title: 'Cotización C tours E.I.R.L',
+                        text: 'Cotización de servicios de movilización - C tours',
+                        url: url
+                    });
+                    setTimeout(() => URL.revokeObjectURL(url), 60000);
+                } else {
+                    const url = URL.createObjectURL(currentPdfBlob);
+                    const newWindow = window.open(url, '_blank');
+                    
+                    if (!newWindow) {
+                        alert('No se pudo abrir el PDF. Por favor, verifique que su navegador permite ventanas emergentes.');
+                    } else {
+                        alert('PDF abierto en nueva ventana. Use el menú de su navegador para compartir.');
+                    }
+                    
+                    setTimeout(() => URL.revokeObjectURL(url), 60000);
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('Compartir cancelado por el usuario');
+                } else {
+                    console.error('Error al compartir:', error);
+                    alert('No se pudo compartir el PDF. El archivo ha sido descargado en su dispositivo.');
+                }
+            }
+        }
         function formatDate(dateString) {
             const date = new Date(dateString);
             return date.toLocaleDateString('es-ES', { 
@@ -2288,6 +2395,7 @@
         
         previewBtn.addEventListener('click', showPreview);
         generatePdfBtn.addEventListener('click', generatePDF);
+        sharePdfBtn.addEventListener('click', sharePdf);
         
         resetBtn.addEventListener('click', function() {
             if (confirm('¿Está seguro de que desea limpiar el formulario? Se perderán todos los datos.')) {
@@ -2312,6 +2420,9 @@
                 additionalServicesContainer.innerHTML = '';
                 
                 pdfPreview.classList.add('hidden');
+                sharePdfBtn.classList.add('hidden');
+                currentPdfBlob = null;
+                currentPdfName = null;
                 calculateCosts();
             }
         });
