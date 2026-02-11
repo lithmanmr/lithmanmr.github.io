@@ -42,6 +42,7 @@
     <meta name="twitter:image" content="assets/android-chrome-512x512.png">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -72,6 +73,198 @@
             min-height: 100vh;
             padding: 15px;
         }
+
+        /* ========== ESTILOS DE PRECARGA ========== */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        
+        #preloader.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .preloader-content {
+            text-align: center;
+            color: white;
+            animation: fadeInUp 0.8s ease;
+        }
+        
+        .logo-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+        }
+        
+        .logo-circle {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .preloader-logo {
+            width: 110px;
+            height: 110px;
+            object-fit: contain;
+            animation: rotate 2s linear infinite;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+        }
+        
+        .logo-pulse {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--accent);
+            opacity: 0.3;
+            z-index: 1;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .preloader-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .preloader-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+        
+        .loading-bar {
+            width: 250px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            margin: 0 auto 15px;
+            overflow: hidden;
+        }
+        
+        .loading-progress {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 10px;
+            animation: loadingProgress 2s ease-in-out;
+            box-shadow: 0 0 10px var(--accent);
+        }
+        
+        .loading-text {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            font-weight: 300;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+        
+        /* Animaciones */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.3;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.3);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes loadingProgress {
+            0% {
+                width: 0%;
+            }
+            100% {
+                width: 100%;
+            }
+        }
+        
+        @keyframes blink {
+            0%, 100% {
+                opacity: 0.8;
+            }
+            50% {
+                opacity: 0.3;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .logo-container {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .logo-circle {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .preloader-logo {
+                width: 65px;
+                height: 65px;
+            }
+            
+            .logo-pulse {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .preloader-title {
+                font-size: 1.5rem;
+            }
+            
+            .preloader-subtitle {
+                font-size: 0.9rem;
+            }
+            
+            .loading-bar {
+                width: 200px;
+            }
+        }
+        /* ========== FIN ESTILOS DE PRECARGA ========== */
         
         .container {
             max-width: 1200px;
@@ -244,6 +437,8 @@
             font-size: 16px;
             transition: all 0.3s;
             background-color: var(--light);
+            max-width: 100%;           /* NUEVO */
+            box-sizing: border-box;    /* NUEVO */
         }
         
         input:focus, select:focus, textarea:focus {
@@ -257,16 +452,35 @@
             flex-direction: column;
             gap: 12px;
         }
-        
+
         @media (min-width: 480px) {
             .row {
                 flex-direction: row;
                 gap: 12px;
             }
         }
-        
+
         .row .form-group {
             flex: 1;
+            min-width: 0;              /* NUEVO: Permite que se encoja */
+            overflow: hidden;          /* NUEVO: Previene desbordamiento */
+        }
+
+        /* NUEVO: Ajuste específico para inputs de fecha en móviles */
+        @media (max-width: 480px) {
+            .row .form-group input[type="date"] {
+                font-size: 14px;       /* Letra un poco más pequeña */
+                padding: 10px 8px;     /* Menos padding */
+            }
+            
+            .input-with-icon input[type="date"] {
+                padding-left: 35px;    /* Ajustar espacio del ícono */
+            }
+            
+            .input-with-icon i {
+                font-size: 0.9rem;     /* Ícono más pequeño */
+                left: 10px;            /* Más cerca del borde */
+            }
         }
         
         .checkbox-group {
@@ -412,6 +626,18 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
             border: 1px solid var(--gray);
             overflow: hidden;
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+            #pdfPreview {
+                margin: 20px 0 0 0;
+                border-radius: 8px;
+                overflow-x: hidden;
+                width: 100%;
+            }
         }
         
         /* ESTILOS OPTIMIZADOS PARA PDF */
@@ -427,11 +653,47 @@
             padding: 30px 20px;
             background: white;
             position: relative;
+            max-width: 100%;
+            overflow-x: hidden;
+            box-sizing: border-box;
         }
         
         @media (min-width: 768px) {
             .preview-container {
                 padding: 40px;
+            }
+        }
+
+        /* NUEVO: Prevenir desbordamiento en móviles */
+        @media (max-width: 768px) {
+            .preview-container {
+                padding: 20px 15px;
+                overflow-x: hidden;
+                max-width: 100%;
+                width: 100%;
+            }
+            
+            .preview-section {
+                padding: 15px 10px;
+                margin-bottom: 15px;
+            }
+            
+            .preview-header {
+                margin: -15px -10px 20px -10px;
+                padding: 15px 10px;
+            }
+            
+            .preview-title h1 {
+                font-size: 1.1rem;
+                word-wrap: break-word;
+            }
+            
+            .preview-company-info {
+                font-size: 0.7rem;
+            }
+            
+            .preview-logo-text {
+                font-size: 1.2rem;
             }
         }
         
@@ -461,6 +723,8 @@
             padding: 20px;
             margin: -30px -20px 30px -20px;
             border-radius: 0;
+            max-width: 100%;
+            box-sizing: border-box;
         }
         
         @media (min-width: 768px) {
@@ -538,12 +802,14 @@
         
         .preview-title {
             text-align: center;
-            margin: 25px 0;
+            margin: 25px auto;
             color: var(--primary);
             background: var(--gold-light);
             padding: 15px;
             border-radius: 10px;
             border-left: 4px solid var(--accent);
+            max-width: 100%;
+            box-sizing: border-box;
         }
         
         .preview-title h1 {
@@ -622,6 +888,15 @@
             .preview-row {
                 flex-direction: row;
             }
+        }
+
+        /* NUEVO: Ajuste para valores largos */
+        .preview-value {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            max-width: 100%;
+            white-space: normal;
         }
         
         .preview-label {
@@ -1062,6 +1337,50 @@
             border-collapse: collapse;
             margin: 15px 0;
             font-size: 0.9rem;
+            table-layout: fixed;
+            max-width: 100%;
+            overflow-wrap: break-word;
+        }
+
+        /* NUEVO: Hacer tablas responsivas en móviles */
+        @media (max-width: 768px) {
+            .preview-table {
+                font-size: 0.8rem;
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                width: 100%;
+                margin: 15px 0;
+            }
+            
+            .preview-table tbody {
+                display: block;
+                width: 100%;
+            }
+            
+            .preview-table tr {
+                display: block;
+                margin-bottom: 10px;
+                border: 1px solid var(--gray);
+                border-radius: 8px;
+                padding: 10px;
+                background: white;
+            }
+            
+            .preview-table td {
+                display: block;
+                width: 100% !important;
+                text-align: left !important;
+                padding: 5px 0;
+                border: none;
+                word-wrap: break-word;
+            }
+            
+            .preview-table td:first-child {
+                font-weight: bold;
+                color: var(--primary);
+                margin-bottom: 3px;
+            }
         }
         
         .preview-table th {
@@ -1111,19 +1430,564 @@
             font-size: 0.7rem;
             text-align: center;
         }
+
+        /* ========== ESTILOS PARA LOGO DEL ENCABEZADO ========== */
+        .logo-image {
+            width: 150px; /* Ajusta el tamaño que prefieras */
+            height: 150px;
+            object-fit: contain;
+            /* Quitamos la animación rotate que estaba aquí */
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+            transition: transform 0.3s ease; /* Solo para hover opcional */
+        }
+
+        /* Tamaño mayor en escritorio si lo deseas */
+        @media (min-width: 768px) {
+            .logo-image {
+                width: 65px;
+                height: 65px;
+            }
+        }
+
+        /* Hover opcional para el logo del encabezado */
+        .logo-image:hover {
+            transform: scale(1.05);
+        }
+
+        /* Logo para el preview del PDF (también necesita tamaño fijo) */
+        .preview-logo .logo-image {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+
+        /* ========== REORGANIZACIÓN DEL LOGO PARA MÓVILES ========== */
+
+        /* Contenedor principal del logo y texto */
+        .logo-and-text {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 15px;
+            text-align: left;
+        }
+
+        /* Logo para escritorio (visible solo en pantallas grandes) */
+        .desktop-logo {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            display: none; /* Oculto por defecto */
+        }
+
+        /* Logo para móviles (arriba del texto) */
+        .mobile-logo-container {
+            display: none; /* Oculto por defecto */
+            text-align: center;
+            margin-bottom: 5px; /* REDUCIDO de 15px a 5px */
+        }
+
+        .mobile-logo-container .logo-image {
+            width: 120px; /* REDUCIDO de 300px a 120px */
+            height: 120px; /* REDUCIDO de 300px a 120px */
+            object-fit: contain;
+            margin: 0 auto;
+            display: block;
+        }
+
+        /* Contenedor de texto */
+        .logo-text-container {
+            text-align: center;
+        }
+
+        /* En móviles */
+        /* En móviles */
+        @media (max-width: 767px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 5px; /* NUEVO: Reduce espacio general */
+            }
+            
+            /* Mostrar logo móvil */
+            .mobile-logo-container {
+                display: block;
+                order: 1;
+                margin-bottom: 8px; /* NUEVO: Espacio compacto */
+            }
+            
+            /* Reorganizar logo y texto */
+            .logo-and-text {
+                flex-direction: column;
+                gap: 5px; /* REDUCIDO de 10px a 5px */
+                order: 2;
+                width: 100%;
+                margin-top: 0; /* NUEVO: Sin margen superior */
+            }
+            
+            /* Ocultar logo desktop en móviles */
+            .desktop-logo {
+                display: none;
+            }
+            
+            /* Texto centrado y con buen espaciado */
+            /* Texto centrado y con buen espaciado */
+            .logo-text {
+                font-size: 1.8rem;
+                text-align: center;
+                width: 100%;
+                margin-top: 0; /* NUEVO: Sin margen superior */
+                line-height: 1.2; /* NUEVO: Altura de línea compacta */
+            }
+            
+            .tagline {
+                font-size: 1rem;
+                text-align: center;
+                margin-top: 3px; /* REDUCIDO de 5px a 3px */
+                width: 100%;
+                line-height: 1.3; /* NUEVO: Altura de línea compacta */
+            }
+            
+            /* Información de contacto */
+            .header-contact {
+                order: 3; /* Tercera posición */
+                text-align: center;
+                width: 100%;
+                margin-top: 20px;
+            }
+            
+            .contact-item {
+                justify-content: center;
+                margin-bottom: 8px;
+            }
+        }
+
+        /* En escritorio */
+        @media (min-width: 768px) {
+            .desktop-logo {
+                display: block; /* Mostrar logo desktop */
+            }
+            
+            .mobile-logo-container {
+                display: none; /* Ocultar logo móvil */
+            }
+            
+            .logo-and-text {
+                flex-direction: row;
+                align-items: center;
+            }
+            
+            .logo-text-container {
+                text-align: left;
+            }
+            
+            .logo-text {
+                text-align: left;
+            }
+            
+            .tagline {
+                text-align: left;
+            }
+            
+            .header-contact {
+                text-align: right;
+            }
+        }
+
+        /* ========== ESTILOS PARA VISTA PREVIA SIMPLIFICADA ========== */
+
+        #pdfPreview {
+            margin-top: 30px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--gray);
+            overflow: hidden;
+        }
+
+        .preview-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .preview-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .preview-header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .preview-container {
+            padding: 25px;
+        }
+
+        .preview-section {
+            background: var(--light);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+
+        .preview-section-title {
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--gray);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+        }
+
+        .preview-data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .data-label {
+            font-weight: 600;
+            color: var(--secondary);
+            min-width: 140px;
+        }
+
+        .data-value {
+            color: var(--dark);
+            text-align: right;
+            word-break: break-word;
+            max-width: 100%;
+            overflow-wrap: break-word;
+        }
+
+        .cost-summary-preview {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--gray);
+        }
+
+        .cost-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .cost-row.total {
+            border-top: 2px solid var(--primary);
+            border-bottom: none;
+            margin-top: 10px;
+            padding-top: 15px;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .services-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .service-item-preview {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid var(--gray);
+        }
+
+        .preview-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--gray);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .preview-data-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .data-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .data-label, .data-value {
+                text-align: left;
+                min-width: auto;
+                max-width: 100%;
+            }
+            
+            .preview-actions {
+                flex-direction: column;
+            }
+            
+            .preview-actions button {
+                width: 100%;
+            }
+        }
+
+        /* ========== BOTÓN ACERCA DE ========== */
+        .about-btn {
+            background: transparent;
+            color: white;
+            border: 2px solid var(--accent);
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            box-shadow: none;
+        }
+
+        .about-btn:hover {
+            background: var(--accent);
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+        }
+
+        /* ========== MODAL ACERCA DE ========== */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: slideDown 0.4s ease;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--secondary);
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .close-modal:hover {
+            color: #e74c3c;
+            transform: rotate(90deg);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 25px 20px;
+            border-radius: 15px 15px 0 0;
+            text-align: center;
+        }
+
+        .modal-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .modal-body {
+            padding: 30px 25px;
+            color: var(--secondary);
+        }
+
+        .modal-body h3 {
+            color: var(--primary);
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-body p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .modal-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--gray), transparent);
+            margin: 20px 0;
+        }
+
+        .tech-list {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .tech-list li {
+            background: var(--light);
+            padding: 10px 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .tech-list li:hover {
+            background: var(--accent);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .tech-list i {
+            font-size: 1.2rem;
+        }
+
+        .modal-footer-text {
+            text-align: center;
+            font-style: italic;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--gray);
+            color: var(--secondary);
+        }
+
+        /* Animaciones */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95%;
+                max-height: 90vh;
+            }
+            
+            .modal-body {
+                padding: 20px 15px;
+            }
+            
+            .tech-list {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
+    
+    <body>
+    <!-- PRECARGA ELEGANTE -->
+    <div id="preloader">
+        <div class="preloader-content">
+            <div class="logo-container">
+                <div class="logo-circle">
+                    <img src="assets/logo.png" alt="C tours Logo" class="preloader-logo">
+                </div>
+                <div class="logo-pulse"></div>
+            </div>
+            <h2 class="preloader-title">C tours E.I.R.L</h2>
+            <p class="preloader-subtitle">App de cotización</p>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p class="loading-text">Cargando...</p>
+        </div>
+    </div>
+    <!-- FIN PRECARGA -->
+    
+    <div class="container">
+        <!-- El resto del contenido continúa aquí... -->
+
     <div class="container">
         <header>
             <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-map-marked-alt logo-icon"></i>
-                    <div>
+                <!-- Contenedor del logo SOLO para móviles -->
+                <div class="mobile-logo-container">
+                    <img src="assets/logo.png" alt="C tours Logo" class="logo-image">
+                </div>
+                
+                <div class="logo-and-text">
+                    <!-- Logo solo visible en escritorio -->
+                    <img src="assets/logo.png" alt="C tours Logo" class="desktop-logo">
+                    <div class="logo-text-container">
                         <div class="logo-text">C tours E.I.R.L</div>
                         <div class="tagline">Agencia de viajes y transporte de turismo</div>
                     </div>
                 </div>
+                
                 <div class="header-contact">
                     <div class="contact-item">
                         <i class="fas fa-map-marker-alt"></i>
@@ -1140,6 +2004,11 @@
                     <div class="contact-item">
                         <i class="fas fa-globe"></i>
                         <a href="https://www.agenciactours.com" target="_blank" class="contact-link no-underline">www.agenciactours.com</a>
+                    </div>
+                    <div class="contact-item" style="margin-top: 10px;">
+                        <button id="aboutBtn" class="about-btn">
+                            <i class="fas fa-info-circle"></i> Acerca de
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1381,239 +2250,166 @@
     </button>
         </div>
         
+        <!-- Vista previa simplificada -->
         <div id="pdfPreview" class="hidden">
-            <div class="preview-container" id="page1">
-                <div class="watermark">C TOURS</div>
-                
-                <div class="preview-header">
-                    <div class="preview-logo">
-                        <div class="pdf-logo">CT</div>
-                        <div class="preview-logo-text">C tours E.I.R.L</div>
-                    </div>
-                    <div class="preview-company-info">
-                        <div>Portal Constitución 9 - Oficina 3, Ayacucho</div>
-                        <div>+51 992 248 858 | agenciactours@gmail.com</div>
-                        <div>www.agenciactours.com</div>
-                    </div>
-                </div>
-                
-                <div class="preview-title">
-                    <h1>COTIZACIÓN DE SERVICIOS DE MOVILIZACIÓN</h1>
-                    <p>Fecha de emisión: <span id="previewDate"></span> | Válida por 15 días</p>
-                    <div class="preview-badge">COTIZACIÓN #<span id="quoteNumber">001</span></div>
-                </div>
-                
+            <div class="preview-header">
+                <h2><i class="fas fa-eye"></i> Vista Previa de Cotización</h2>
+                <p>Revise que toda la información sea correcta antes de generar el PDF</p>
+            </div>
+            
+            <div class="preview-container">
+                <!-- Sección Cliente -->
                 <div class="preview-section">
                     <h3 class="preview-section-title">
-                        <i class="fas fa-user-circle"></i>
+                        <i class="fas fa-user"></i>
                         Información del Cliente
                     </h3>
-                    <table class="preview-table">
-                        <tr>
-                            <td width="30%"><strong>Nombre Completo:</strong></td>
-                            <td id="previewClientName"></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Correo Electrónico:</strong></td>
-                            <td id="previewClientEmail"></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Teléfono:</strong></td>
-                            <td id="previewClientPhone"></td>
-                        </tr>
-                        <tr>
-                            <td><strong>DNI/Pasaporte:</strong></td>
-                            <td id="previewClientDni"></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Dirección:</strong></td>
-                            <td id="previewClientAddress"></td>
-                        </tr>
-                    </table>
+                    <div class="preview-data-grid">
+                        <div class="data-row">
+                            <span class="data-label">Nombre:</span>
+                            <span class="data-value" id="previewClientNameSimple">-</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Email:</span>
+                            <span class="data-value" id="previewClientEmailSimple">-</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Teléfono:</span>
+                            <span class="data-value" id="previewClientPhoneSimple">-</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">DNI/Pasaporte:</span>
+                            <span class="data-value" id="previewClientDniSimple">-</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Dirección:</span>
+                            <span class="data-value" id="previewClientAddressSimple">-</span>
+                        </div>
+                    </div>
                 </div>
                 
+                <!-- Sección Servicio -->
                 <div class="preview-section">
                     <h3 class="preview-section-title">
                         <i class="fas fa-route"></i>
                         Detalles del Servicio
                     </h3>
-                    <table class="preview-table">
-                        <tr>
-                            <td width="30%"><strong>Tipo de Servicio:</strong></td>
-                            <td id="previewServiceType"></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Vehículo:</strong></td>
-                            <td id="previewVehicleType"></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Fecha de Ida:</strong></td>
-                            <td id="previewStartDate"></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Fecha de Vuelta:</strong></td>
-                            <td id="previewEndDate"></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Lugar / Destino:</strong></td>
-                            <td id="previewDestination"></td>
-                        </tr>
-                    </table>
-                </div>
-                
-                <div class="pdf-footer">
-                    C tours | +51 992 248 858 | www.agenciactours.com
-                </div>
-                <div class="page-number">Página 1 de 3</div>
-            </div>
-            
-            <div class="preview-container" id="page2">
-                <div class="watermark">C TOURS</div>
-                
-                <div class="preview-header">
-                    <div class="preview-logo">
-                        <div class="pdf-logo">CT</div>
-                        <div class="preview-logo-text">C tours E.I.R.L</div>
-                    </div>
-                    <div class="preview-company-info">
-                        <div>Portal Constitución 9 - Oficina 3, Ayacucho</div>
-                        <div>+51 992 248 858 | agenciactours@gmail.com</div>
-                        <div>www.agenciactours.com</div>
+                    <div class="preview-data-grid">
+                        <div class="data-row">
+                            <span class="data-label">Tipo de Servicio:</span>
+                            <span class="data-value" id="previewServiceTypeSimple">-</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Vehículo:</span>
+                            <span class="data-value" id="previewVehicleTypeSimple">-</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Fecha de Ida:</span>
+                            <span class="data-value" id="previewStartDateSimple">-</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Fecha de Vuelta:</span>
+                            <span class="data-value" id="previewEndDateSimple">-</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Destino:</span>
+                            <span class="data-value" id="previewDestinationSimple">-</span>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="preview-section" id="previewAdditionalServicesSection" style="display: none;">
+                <!-- Sección Costos -->
+                <div class="preview-section">
+                    <h3 class="preview-section-title">
+                        <i class="fas fa-calculator"></i>
+                        Resumen de Costos
+                    </h3>
+                    <div class="cost-summary-preview">
+                        <div class="cost-row">
+                            <span>Costo Base:</span>
+                            <span id="previewBaseCostSimple">S/ 0.00</span>
+                        </div>
+                        <div class="cost-row">
+                            <span>Pasajeros:</span>
+                            <span id="previewPassengersSimple">1</span>
+                        </div>
+                        <div class="cost-row">
+                            <span>Descuento:</span>
+                            <span id="previewDiscountSimple">0%</span>
+                        </div>
+                        <div class="cost-row">
+                            <span>IGV:</span>
+                            <span id="previewIgvSimple">Incluido (18%)</span>
+                        </div>
+                        <div class="cost-row total">
+                            <strong>TOTAL A PAGAR:</strong>
+                            <strong id="previewTotalCostSimple">S/ 0.00</strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Servicios Adicionales -->
+                <div class="preview-section" id="additionalServicesPreviewSection" style="display: none;">
                     <h3 class="preview-section-title">
                         <i class="fas fa-plus-circle"></i>
                         Servicios Adicionales
                     </h3>
-                    <div class="preview-additional-services" id="previewAdditionalServicesList">
+                    <div class="services-list" id="additionalServicesPreviewList">
+                        <!-- Se llena dinámicamente -->
                     </div>
                 </div>
                 
-                <div class="preview-section">
-                    <h3 class="preview-section-title">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                        Resumen de Costos
-                    </h3>
-                    <table class="preview-table">
-                        <tr>
-                            <td width="70%"><strong>Costo Base:</strong></td>
-                            <td id="previewBaseCost"></td>
-                        </tr>
-                        <tr id="previewAdditionalServicesItem" style="display: none;">
-                            <td><strong>Servicios Adicionales:</strong></td>
-                            <td id="previewAdditionalServicesCost"></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Descuento:</strong></td>
-                            <td id="previewDiscount"></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Subtotal:</strong></td>
-                            <td id="previewSubtotal"></td>
-                        </tr>
-                        <tr id="previewTaxItem">
-                            <td><strong>IGV (18%):</strong></td>
-                            <td id="previewTax"></td>
-                        </tr>
-                        <tr style="background-color: var(--accent); color: white; font-weight: bold;">
-                            <td><strong>TOTAL A PAGAR:</strong></td>
-                            <td id="previewTotalCost"></td>
-                        </tr>
-                    </table>
+                <!-- Botones de acción en vista previa -->
+                <div class="preview-actions">
+                    <button class="btn-secondary" onclick="closePreview()">
+                        <i class="fas fa-times"></i> Cerrar Vista Previa
+                    </button>
+                    <button class="btn-primary" id="generateFromPreviewBtn">
+                        <i class="fas fa-file-pdf"></i> Generar PDF
+                    </button>
                 </div>
-                
-                <div class="preview-section">
-                    <h3 class="preview-section-title">
-                        <i class="fas fa-clipboard-check"></i>
-                        Servicios Incluidos y No Incluidos
-                    </h3>
-                    <div class="preview-services">
-                        <div class="service-included">
-                            <div class="service-title">
-                                <i class="fas fa-check-circle"></i>
-                                Servicios Incluidos
-                            </div>
-                            <ul class="service-list" id="previewIncludedServices">
-                            </ul>
-                        </div>
-                        <div class="service-excluded">
-                            <div class="service-title">
-                                <i class="fas fa-times-circle"></i>
-                                Servicios No Incluidos
-                            </div>
-                            <ul class="service-list" id="previewExcludedServices">
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="preview-section">
-                    <h3 class="preview-section-title">
-                        <i class="fas fa-lightbulb"></i>
-                        Recomendaciones
-                    </h3>
-                    <div class="preview-recommendations" id="previewRecommendations">
-                    </div>
-                </div>
-                
-                <div class="pdf-footer">
-                    C tours | +51 992 248 858 | www.agenciactours.com
-                </div>
-                <div class="page-number">Página 2 de 3</div>
-            </div>
-            
-            <div class="preview-container" id="page3">
-                <div class="watermark">C TOURS</div>
-                
-                <div class="preview-header">
-                    <div class="preview-logo">
-                        <div class="pdf-logo">CT</div>
-                        <div class="preview-logo-text">C tours E.I.R.L</div>
-                    </div>
-                    <div class="preview-company-info">
-                        <div>Portal Constitución 9 - Oficina 3, Ayacucho</div>
-                        <div>+51 992 248 858 | agenciactours@gmail.com</div>
-                        <div>www.agenciactours.com</div>
-                    </div>
-                </div>
-                
-                <div class="preview-section">
-                    <h3 class="preview-section-title">
-                        <i class="fas fa-sticky-note"></i>
-                        Términos y Condiciones
-                    </h3>
-                    <p>• Esta cotización es válida por 15 días a partir de la fecha de emisión.</p>
-                    <p>• Para confirmar el servicio, se requiere un anticipo del 50% del valor total.</p>
-                    <p>• El pago restante debe realizarse al momento de la prestación del servicio.</p>
-                    <p>• Cualquier cambio en el itinerario puede afectar el costo final.</p>
-                    <p>• Los precios no incluyen propinas para el conductor o guías.</p>
-                    <p>• La empresa se reserva el derecho de modificar vehículos por otros de similar categoría.</p>
-                </div>
-                
-                <div class="final-page">
-                    <div class="final-message">
-                        <h2>¡Gracias por preferir nuestros servicios!</h2>
-                        <p>Estamos comprometidos con brindarle una experiencia de movilización segura y confortable.</p>
-                    </div>
-                    
-                    <div class="management-info">
-                        <p><strong>Gerente General</strong></p>
-                        <p>César De la Cruz Vilcapoma</p>
-                        <p>DNI: 74039078</p>
-                        <p>RUC: 20603243251</p>
-                        <p>Agencia de Viajes y Transportes de Turismo C tours E.I.R.L</p>
-                    </div>
-                </div>
-                
-                <div class="pdf-footer">
-                    C tours | +51 992 248 858 | www.agenciactours.com
-                </div>
-                <div class="page-number">Página 3 de 3</div>
             </div>
         </div>
-    </div>
+
+        <!-- Modal Acerca de -->
+        <div id="aboutModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-modal" id="closeModal">&times;</span>
+                <div class="modal-header">
+                    <i class="fas fa-info-circle modal-icon"></i>
+                    <h2>Acerca de la Aplicación</h2>
+                </div>
+                <div class="modal-body">
+                    <h3><i class="fas fa-file-invoice"></i> Sistema de Cotización C tours</h3>
+                    <p><strong>Versión:</strong> 1.0.0</p>
+                    <p><strong>Fecha:</strong> Febrero 2025</p>
+                    
+                    <div class="modal-divider"></div>
+                    
+                    <h3><i class="fas fa-laptop-code"></i> Desarrollador</h3>
+                    <p><strong>Nombre:</strong> Lithman A. Morales Rivera</p>
+                    <p><strong>Email:</strong> lithmanmr1011@gmail.com</p>
+                    <p><strong>Teléfono:</strong> 917 524 248</p>
+                    
+                    <div class="modal-divider"></div>
+                    
+                    <h3><i class="fas fa-tools"></i> Funcionalidades</h3>
+                    <ul class="tech-list">
+                        <li><i class="fas fa-calculator"></i> Cálculo de precios automático</li>
+                        <li><i class="fas fa-tag"></i> Opción de IGV y Descuento</li>
+                        <li><i class="fas fa-file-pdf"></i> Reportes PDF profesionales</li>
+                        <li><i class="fas fa-share-alt"></i> Compartible (Redes sociales)</li>
+                    </ul>
+                    
+                    <div class="modal-divider"></div>
+                    
+                    <p class="modal-footer-text">
+                        <i class="fas fa-heart" style="color: #e74c3c;"></i> 
+                        Desarrollado para <strong>C tours E.I.R.L</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
 
     <script>
         const { jsPDF } = window.jspdf;
@@ -1787,49 +2583,59 @@
             
             const costs = calculateCosts();
             
-            const today = new Date();
-            const quoteNum = today.getFullYear().toString().slice(-2) + 
-                           (today.getMonth()+1).toString().padStart(2, '0') + 
-                           today.getDate().toString().padStart(2, '0') + 
-                           Math.floor(Math.random() * 100).toString().padStart(2, '0');
-            quoteNumber.textContent = quoteNum;
+            // Llenar datos del cliente
+            document.getElementById('previewClientNameSimple').textContent = clientName.value || 'No especificado';
+            document.getElementById('previewClientEmailSimple').textContent = clientEmail.value || 'No especificado';
+            document.getElementById('previewClientPhoneSimple').textContent = clientPhone.value || 'No especificado';
+            document.getElementById('previewClientDniSimple').textContent = clientDni.value || 'No especificado';
+            document.getElementById('previewClientAddressSimple').textContent = clientAddress.value || 'No especificado';
             
-            previewDate.textContent = today.toLocaleDateString('es-ES');
-            previewClientName.textContent = clientName.value || 'No especificado';
-            previewClientEmail.textContent = clientEmail.value || 'No especificado';
-            previewClientPhone.textContent = clientPhone.value || 'No especificado';
-            previewClientDni.textContent = clientDni.value || 'No especificado';
-            previewClientAddress.textContent = clientAddress.value || 'No especificado';
-            previewServiceType.textContent = getServiceTypeText(serviceType.value);
-            previewVehicleType.textContent = getVehicleTypeText(vehicleType.value);
-            previewStartDate.textContent = formatDate(startDate.value);
-            previewEndDate.textContent = formatDate(endDate.value);
-            previewDestination.textContent = destination.value || 'Por definir con el cliente';
+            // Llenar datos del servicio
+            document.getElementById('previewServiceTypeSimple').textContent = getServiceTypeText(serviceType.value);
+            document.getElementById('previewVehicleTypeSimple').textContent = getVehicleTypeText(vehicleType.value);
+            document.getElementById('previewStartDateSimple').textContent = formatDate(startDate.value);
+            document.getElementById('previewEndDateSimple').textContent = formatDate(endDate.value);
+            document.getElementById('previewDestinationSimple').textContent = destination.value || 'Por definir';
             
-            previewBaseCost.textContent = `S/ ${costs.baseCost.toFixed(2)}`;
-            previewAdditionalServicesCost.textContent = `S/ ${costs.additionalCost.toFixed(2)}`;
-            previewDiscount.textContent = `S/ ${costs.discountAmount.toFixed(2)}`;
-            previewSubtotal.textContent = `S/ ${costs.subtotal.toFixed(2)}`;
-            previewTax.textContent = `S/ ${costs.taxAmount.toFixed(2)}`;
-            previewTotalCost.textContent = `S/ ${costs.totalCost.toFixed(2)}`;
+            // Llenar datos de costos
+            document.getElementById('previewBaseCostSimple').textContent = `S/ ${costs.baseCost.toFixed(2)}`;
+            document.getElementById('previewPassengersSimple').textContent = passengers.value;
+            document.getElementById('previewDiscountSimple').textContent = `${discount.value}%`;
+            document.getElementById('previewIgvSimple').textContent = includeIgv.checked ? 'Incluido (18%)' : 'No incluido';
+            document.getElementById('previewTotalCostSimple').textContent = `S/ ${costs.totalCost.toFixed(2)}`;
             
-            if (costs.additionalCost > 0) {
-                previewAdditionalServicesItem.style.display = 'table-row';
+            // Mostrar servicios adicionales si existen
+            const additionalServices = getAdditionalServices();
+            const additionalSection = document.getElementById('additionalServicesPreviewSection');
+            const additionalList = document.getElementById('additionalServicesPreviewList');
+            
+            if (additionalServices.length > 0) {
+                additionalSection.style.display = 'block';
+                additionalList.innerHTML = '';
+                
+                additionalServices.forEach(service => {
+                    const serviceItem = document.createElement('div');
+                    serviceItem.className = 'service-item-preview';
+                    serviceItem.innerHTML = `
+                        <span>${service.description}</span>
+                        <span class="cost">S/ ${service.cost.toFixed(2)}</span>
+                    `;
+                    additionalList.appendChild(serviceItem);
+                });
             } else {
-                previewAdditionalServicesItem.style.display = 'none';
+                additionalSection.style.display = 'none';
             }
             
-            if (includeIgv.checked) {
-                previewTaxItem.style.display = 'table-row';
-            } else {
-                previewTaxItem.style.display = 'none';
-            }
-            
-            updateServiceDetails();
-            updatePreviewServices();
-            
+            // Mostrar vista previa
             pdfPreview.classList.remove('hidden');
             pdfPreview.scrollIntoView({ behavior: 'smooth' });
+            
+            // Configurar botón de generar PDF desde vista previa
+            document.getElementById('generateFromPreviewBtn').onclick = generatePDF;
+        }
+
+        function closePreview() {
+            pdfPreview.classList.add('hidden');
         }
         
         function updatePreviewServices() {
@@ -1888,461 +2694,724 @@
             }
             
             const doc = new jsPDF();
-
             const logoPath = 'assets/logo.png';
             
-            // Colores corporativos
-            const grisElegante = [245, 245, 245];  // Casi blanco, muy elegante
+            // Colores corporativos mejorados
             const azulOscuro = [26, 54, 93];
+            const azulMedio = [45, 55, 72];
             const dorado = [212, 175, 55];
+            const doradoClaro = [234, 209, 130];
             const gris = [100, 100, 100];
+            const grisClaro = [245, 245, 245];
+            const verde = [56, 161, 105];
+            const rojo = [229, 62, 62];
+            const blanco = [255, 255, 255];
             
-            let y = 20;
+            // Generar numero de cotizacion
+            const quoteNum = new Date().getFullYear().toString().slice(-2) + 
+                        (new Date().getMonth()+1).toString().padStart(2, '0') + 
+                        new Date().getDate().toString().padStart(2, '0') + 
+                        Math.floor(Math.random() * 10000).toString().padStart(4, '0');
             
-            // ========== ENCABEZADO PREMIUM ==========
-            doc.setFillColor(...azulOscuro);
-            doc.rect(0, 0, 210, 50, 'F');
-            
-            // Logo
             const img = new Image();
             img.src = logoPath;
             
-            // Una vez que la imagen esté cargada, generar el PDF
             img.onload = function() {
-                // Agregar el logo (ajusta las coordenadas y tamaño según necesites)
-                doc.addImage(img, 'PNG', -3, -14, 80, 80);
-
-            
-            
-            // Nombre de la empresa
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(24);
-            doc.setFont(undefined, 'bold');
-            doc.text('C tours E.I.R.L', 105, 23, { align: 'center' });
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.text('Agencia de viajes y transporte de turismo', 105, 32, { align: 'center' });
-            
-            // Datos de contacto
-            doc.setFontSize(8);
-            const contacto = [
-                'Portal Constitución 9 - Oficina 3, Ayacucho',
-                '+51 992 248 858',
-                'agenciactours@gmail.com',
-                'www.agenciactours.com'
-            ];
-            let yContacto = 15;
-            contacto.forEach(dato => {
-                doc.text(dato, 205, yContacto, { align: 'right' });
-                yContacto += 4;
-            });
-            
-            y = 60;
-            
-            // Título de cotización
-            doc.setFillColor(240, 240, 240);
-            doc.rect(15, y, 180, 12, 'F');
-            doc.setTextColor(...azulOscuro);
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
-            doc.text('COTIZACIÓN DE SERVICIOS DE MOVILIZACIÓN', 105, y + 8, { align: 'center' });
-            
-            y += 18;
-            
-            doc.setFontSize(9);
-            doc.setFont(undefined, 'normal');
-            doc.setTextColor(...gris);
-            const fecha = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-            const quoteNum = new Date().getFullYear().toString().slice(-2) + 
-                           (new Date().getMonth()+1).toString().padStart(2, '0') + 
-                           new Date().getDate().toString().padStart(2, '0') + 
-                           Math.floor(Math.random() * 100).toString().padStart(2, '0');
-            doc.text(`Fecha de emisión: ${fecha}`, 15, y);
-            doc.text(`Cotización N°: ${quoteNum}`, 195, y, { align: 'right' });
-            doc.text('Válida por 15 días', 105, y + 5, { align: 'center' });
-            
-            y += 12;
-            
-            // ========== INFORMACIÓN DEL CLIENTE ==========
-            doc.setFillColor(...dorado);
-            doc.rect(15, y, 180, 8, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(11);
-            doc.setFont(undefined, 'bold');
-            doc.text('INFORMACIÓN DEL CLIENTE', 20, y + 5.5);
-            
-            y += 14;
-            doc.setTextColor(50, 50, 50);
-            doc.setFontSize(10);
-            
-            const clienteData = [
-                ['Nombre:', clientName.value || 'No especificado'],
-                ['Correo:', clientEmail.value || 'No especificado'],
-                ['Teléfono:', clientPhone.value || 'No especificado'],
-                ['DNI/Pasaporte:', clientDni.value || 'No especificado'],
-                ['Dirección:', clientAddress.value || 'No especificado']
-            ];
-            
-            clienteData.forEach(([label, valor]) => {
-                doc.setFont(undefined, 'bold');
-                doc.text(label, 20, y);
-                doc.setFont(undefined, 'normal');
-                const textoValor = doc.splitTextToSize(valor, 120);
-                doc.text(textoValor, 55, y);
-                y += Math.max(6, textoValor.length * 5);
-            });
-            
-            y += 5;
-            
-            // ========== DETALLES DEL SERVICIO ==========
-            doc.setFillColor(...dorado);
-            doc.rect(15, y, 180, 8, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(11);
-            doc.setFont(undefined, 'bold');
-            doc.text('DETALLES DEL SERVICIO', 20, y + 5.5);
-            
-            y += 14;
-            doc.setTextColor(50, 50, 50);
-            doc.setFontSize(10);
-            
-            const servicioData = [
-                ['Tipo de Servicio:', getServiceTypeText(serviceType.value)],
-                ['Vehículo:', getVehicleTypeText(vehicleType.value)],
-                ['Fecha de Ida:', formatDate(startDate.value)],
-                ['Fecha de Vuelta:', formatDate(endDate.value)],
-                ['Destino:', destination.value || 'Por definir con el cliente']
-            ];
-            
-            servicioData.forEach(([label, valor]) => {
-                doc.setFont(undefined, 'bold');
-                doc.text(label, 20, y);
-                doc.setFont(undefined, 'normal');
-                const textoValor = doc.splitTextToSize(valor, 120);
-                doc.text(textoValor, 55, y);
-                y += Math.max(6, textoValor.length * 5);
-            });
-            
-            y += 8;
-            
-            // Pie de página para la primera página
-            doc.setFillColor(...azulOscuro);
-            doc.rect(0, 277, 210, 20, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(8);
-            doc.setFont(undefined, 'normal');
-            doc.text('C tours | +51 992 248 858 | www.agenciactours.com', 105, 285, { align: 'center' });
-            doc.text('Página 1 de 3', 195, 285, { align: 'right' });
-            
-            // ========== NUEVA PÁGINA ==========
-            doc.addPage();
-            y = 20;
-            
-            // Encabezado página 2
-            doc.setFillColor(...azulOscuro);
-            doc.rect(0, 0, 210, 30, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(18);
-            doc.setFont(undefined, 'bold');
-            doc.text('C tours E.I.R.L', 105, 20, { align: 'center' });
-            
-            y = 40;
-            
-            // ========== SERVICIOS ADICIONALES ==========
-            const additionalServices = getAdditionalServices();
-            if (additionalServices.length > 0) {
+                // ============================================
+                // PAGINA 1: PORTADA Y DATOS PRINCIPALES
+                // ============================================
+                
+                let y = 20;
+                
+                // Fondo azul superior
+                doc.setFillColor(...azulOscuro);
+                doc.rect(0, 0, 210, 70, 'F');
+                
+                // Franja dorada
                 doc.setFillColor(...dorado);
-                doc.rect(15, y, 180, 8, 'F');
-                doc.setTextColor(255, 255, 255);
+                doc.rect(0, 70, 210, 3, 'F');
+                
+                // Logo circular con fondo blanco
+                doc.setFillColor(...blanco);
+                doc.circle(35, 35, 18, 'F');
+                doc.setDrawColor(...dorado);
+                doc.setLineWidth(1.5);
+                doc.circle(35, 35, 18, 'S');
+                doc.addImage(img, 'PNG', 20, 20, 30, 30);
+                
+                // Titulo centrado
+                doc.setTextColor(...blanco);
+                doc.setFontSize(26);
+                doc.setFont(undefined, 'bold');
+                doc.text('C tours E.I.R.L', 105, 30, { align: 'center' });
+                
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'normal');
+                doc.text('Agencia de Viajes y Transporte de Turismo', 105, 38, { align: 'center' });
+                
+                // Linea separadora
+                doc.setDrawColor(...blanco);
+                doc.setLineWidth(0.3);
+                doc.line(70, 42, 140, 42);
+                
+                // Datos de contacto
+                doc.setFontSize(8);
+                const contactos = [
+                    'Portal Constitución 9 - Oficina 3, Ayacucho',
+                    '+51 992 248 858 | agenciactours@gmail.com',
+                    'www.agenciactours.com'
+                ];
+                let yContact = 48;
+                contactos.forEach(texto => {
+                    doc.text(texto, 105, yContact, { align: 'center' });
+                    yContact += 4;
+                });
+                
+                // CODIGO QR - Solo en pagina 1, redirige a la web
+                const qrURL = 'https://www.agenciactours.com';
+
+                // 1. Crear contenedor temporal
+                const qrContainer = document.createElement('div');
+                qrContainer.style.position = 'absolute';
+                qrContainer.style.left = '-9999px';
+                qrContainer.id = 'tempQRContainer';
+                document.body.appendChild(qrContainer);
+
+                try {
+                    // 2. Generar QR SIN setTimeout
+                    new QRCode(qrContainer, {
+                        text: qrURL,
+                        width: 100,
+                        height: 100,
+                        colorDark: "#1a365d",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                    
+                    // 3. Obtener canvas inmediatamente (ya debería estar listo)
+                    const qrCanvas = qrContainer.querySelector('canvas');
+                    
+                    if (qrCanvas) {
+                        const qrImage = qrCanvas.toDataURL('image/png');
+                        
+                        // 4. Dibujar en PÁGINA 1 (donde estamos actualmente)
+                        // Fondo blanco para QR
+                        doc.setFillColor(...blanco);
+                        doc.roundedRect(163, 8, 40, 40, 3, 3, 'F');
+                        
+                        // Borde dorado
+                        doc.setDrawColor(...dorado);
+                        doc.setLineWidth(1.5);
+                        doc.roundedRect(163, 8, 40, 40, 3, 3, 'S');
+                        
+                        // QR
+                        doc.addImage(qrImage, 'PNG', 166, 11, 34, 34);
+                        
+                        // Texto completo en 3 líneas
+                        doc.setFontSize(6);
+                        doc.setTextColor(...blanco);
+                        doc.setFont(undefined, 'bold');
+                        doc.text('Visita nuestra web', 183, 54, { align: 'center' });
+                        
+                        // Línea decorativa
+                        doc.setDrawColor(...doradoClaro);
+                        doc.setLineWidth(0.3);
+                        doc.line(170, 47, 196, 47);
+                    }
+                    
+                    // 5. Limpiar contenedor
+                    if (document.getElementById('tempQRContainer')) {
+                        document.body.removeChild(qrContainer);
+                    }
+                    
+                } catch (error) {
+                    console.warn('Error QR:', error);
+                    // Limpiar contenedor si hay error
+                    if (document.getElementById('tempQRContainer')) {
+                        document.body.removeChild(qrContainer);
+                    }
+                }
+                
+                y = 85;
+                
+                // Titulo principal
+                doc.setFillColor(...dorado);
+                doc.roundedRect(15, y, 180, 20, 3, 3, 'F');
+                
+                doc.setTextColor(...blanco);
+                doc.setFontSize(18);
+                doc.setFont(undefined, 'bold');
+                doc.text('COTIZACIÓN DE SERVICIOS', 105, y + 8, { align: 'center' });
+                
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.text('Transporte y Movilización Turística', 105, y + 15, { align: 'center' });
+                
+                y += 30;
+                
+                // Info de cotizacion
+                doc.setFillColor(...grisClaro);
+                doc.roundedRect(15, y, 180, 18, 2, 2, 'F');
+                
+                doc.setTextColor(...azulOscuro);
+                doc.setFontSize(9);
+                doc.setFont(undefined, 'bold');
+                
+                const fecha = new Date().toLocaleDateString('es-ES', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                
+                doc.text('N° Cotización:', 20, y + 6);
+                doc.setFont(undefined, 'normal');
+                doc.text(quoteNum, 50, y + 6);
+                
+                doc.setFont(undefined, 'bold');
+                doc.text('Fecha:', 20, y + 12);
+                doc.setFont(undefined, 'normal');
+                doc.text(fecha, 50, y + 12);
+                
+                doc.setFont(undefined, 'bold');
+                doc.text('Validez:', 120, y + 6);
+                doc.setFont(undefined, 'normal');
+                doc.text('15 días calendario', 137, y + 6);
+                
+                doc.setFont(undefined, 'bold');
+                doc.text('Estado:', 120, y + 12);
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(...verde);
+                doc.text('VIGENTE', 137, y + 12);
+                
+                y += 28;
+                
+                // INFORMACION DEL CLIENTE
+                doc.setFillColor(...azulOscuro);
+                doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
+                
+                doc.setTextColor(...blanco);
                 doc.setFontSize(11);
                 doc.setFont(undefined, 'bold');
-                doc.text('SERVICIOS ADICIONALES', 20, y + 5.5);
+                doc.text('INFORMACIÓN DEL CLIENTE', 20, y + 7);
                 
-                y += 14;
-                doc.setTextColor(50, 50, 50);
-                doc.setFontSize(10);
+                doc.setFillColor(...dorado);
+                doc.circle(190, y + 5, 2, 'F');
                 
-                additionalServices.forEach(service => {
-                    doc.setFont(undefined, 'normal');
-                    const desc = doc.splitTextToSize(`• ${service.description}`, 140);
-                    doc.text(desc, 20, y);
+                y += 15;
+                
+                const clienteData = [
+                    ['Nombre/Empresa:', clientName.value || 'No especificado'],
+                    ['Email:', clientEmail.value || 'No especificado'],
+                    ['Teléfono:', clientPhone.value || 'No especificado'],
+                    ['DNI/Pasaporte:', clientDni.value || 'No especificado'],
+                    ['Dirección:', clientAddress.value || 'No especificado']
+                ];
+                
+                clienteData.forEach((row, index) => {
+                    if (index % 2 === 0) {
+                        doc.setFillColor(...grisClaro);
+                        doc.roundedRect(15, y - 1, 180, 7, 1, 1, 'F');
+                    }
+                    
+                    doc.setTextColor(...azulOscuro);
+                    doc.setFontSize(9);
                     doc.setFont(undefined, 'bold');
-                    doc.text(`S/ ${service.cost.toFixed(2)}`, 195, y, { align: 'right' });
-                    y += Math.max(6, desc.length * 5);
+                    doc.text(row[0], 20, y + 3.5);
+                    
+                    doc.setFont(undefined, 'normal');
+                    doc.setTextColor(...gris);
+                    const textoValor = doc.splitTextToSize(row[1], 110);
+                    doc.text(textoValor, 60, y + 3.5);
+                    
+                    y += 7;
                 });
                 
                 y += 8;
-            }
-            
-            // ========== RESUMEN DE COSTOS ==========
-            const costs = calculateCosts();
-            
-            doc.setFillColor(...dorado);
-            doc.rect(15, y, 180, 8, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(11);
-            doc.setFont(undefined, 'bold');
-            doc.text('RESUMEN DE COSTOS', 20, y + 5.5);
-            
-            y += 14;
-            doc.setTextColor(50, 50, 50);
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            
-            doc.text('Costo Base:', 20, y);
-            doc.text(`S/ ${costs.baseCost.toFixed(2)}`, 195, y, { align: 'right' });
-            y += 6;
-            
-            if (costs.additionalCost > 0) {
-                doc.text('Servicios Adicionales:', 20, y);
-                doc.text(`S/ ${costs.additionalCost.toFixed(2)}`, 195, y, { align: 'right' });
-                y += 6;
-            }
-            
-            doc.text('Descuento:', 20, y);
-            doc.text(`- S/ ${costs.discountAmount.toFixed(2)}`, 195, y, { align: 'right' });
-            y += 6;
-            
-            doc.text('Subtotal:', 20, y);
-            doc.text(`S/ ${costs.subtotal.toFixed(2)}`, 195, y, { align: 'right' });
-            y += 6;
-            
-            if (includeIgv.checked) {
-                doc.text('IGV (18%):', 20, y);
-                doc.text(`S/ ${costs.taxAmount.toFixed(2)}`, 195, y, { align: 'right' });
-                y += 6;
-            }
-            
-            y += 4;
-            doc.setFillColor(240, 240, 240);
-            doc.rect(15, y - 3, 180, 12, 'F');
-            doc.setTextColor(...azulOscuro);
-            doc.setFontSize(13);
-            doc.setFont(undefined, 'bold');
-            doc.text('TOTAL A PAGAR:', 20, y + 5);
-            doc.text(`S/ ${costs.totalCost.toFixed(2)}`, 195, y + 5, { align: 'right' });
-            
-            y += 18;
-            
-            // ========== SERVICIOS INCLUIDOS/NO INCLUIDOS ==========
-            const includedList = includedServices.value.split('\n').filter(item => item.trim() !== '');
-            const excludedList = excludedServices.value.split('\n').filter(item => item.trim() !== '');
-
-            // SOLO MOSTRAR ESTA SECCIÓN SI HAY CONTENIDO
-            if (includedList.length > 0 || excludedList.length > 0) {
-                doc.setFillColor(...dorado);
-                doc.rect(15, y, 180, 8, 'F');
-                doc.setTextColor(255, 255, 255);
+                
+                // DETALLES DEL SERVICIO
+                doc.setFillColor(...azulOscuro);
+                doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
+                
+                doc.setTextColor(...blanco);
                 doc.setFontSize(11);
                 doc.setFont(undefined, 'bold');
-                doc.text('SERVICIOS INCLUIDOS Y NO INCLUIDOS', 20, y + 5.5);
+                doc.text('DETALLES DEL SERVICIO', 20, y + 7);
                 
-                y += 14;
-                doc.setTextColor(50, 50, 50);
-                doc.setFontSize(9);
+                doc.setFillColor(...dorado);
+                doc.circle(190, y + 5, 2, 'F');
                 
-                if (includedList.length > 0) {
+                y += 15;
+                
+                const servicioData = [
+                    ['Tipo:', getServiceTypeText(serviceType.value)],
+                    ['Vehículo:', getVehicleTypeText(vehicleType.value)],
+                    ['Inicio:', formatDate(startDate.value)],
+                    ['Fin:', formatDate(endDate.value)],
+                    ['Destino:', destination.value || 'Por definir'],
+                    ['Pasajeros:', passengers.value + ' persona(s)']
+                ];
+                
+                servicioData.forEach((row, index) => {
+                    if (index % 2 === 0) {
+                        doc.setFillColor(...grisClaro);
+                        doc.roundedRect(15, y - 1, 180, 7, 1, 1, 'F');
+                    }
+                    
+                    doc.setTextColor(...azulOscuro);
+                    doc.setFontSize(9);
                     doc.setFont(undefined, 'bold');
-                    doc.setTextColor(56, 161, 105);
-                    doc.text('Incluidos:', 20, y);
-                    y += 5;
+                    doc.text(row[0], 20, y + 3.5);
+                    
                     doc.setFont(undefined, 'normal');
-                    doc.setTextColor(50, 50, 50);
-                    includedList.forEach(item => {
-                        const lines = doc.splitTextToSize(`• ${item.trim()}`, 80);
+                    doc.setTextColor(...gris);
+                    const textoValor = doc.splitTextToSize(row[1], 110);
+                    doc.text(textoValor, 60, y + 3.5);
+                    
+                    y += 7;
+                });
+                
+                // Pie pagina 1
+                doc.setFillColor(...azulOscuro);
+                doc.rect(0, 277, 210, 20, 'F');
+                
+                doc.setTextColor(...blanco);
+                doc.setFontSize(8);
+                doc.text('C tours E.I.R.L | RUC: 20603243251 | www.agenciactours.com', 105, 285, { align: 'center' });
+                doc.setFontSize(7);
+                doc.text('Pág. 1 de 3', 195, 291, { align: 'right' });
+                doc.text(quoteNum, 15, 291);
+                
+                // ============================================
+                // PAGINA 2: COSTOS Y SERVICIOS
+                // ============================================
+                doc.addPage();
+                y = 20;
+                
+                // Encabezado pagina 2
+                doc.setFillColor(...azulOscuro);
+                doc.rect(0, 0, 210, 35, 'F');
+                doc.setFillColor(...dorado);
+                doc.rect(0, 35, 210, 2, 'F');
+                
+                doc.setTextColor(...blanco);
+                doc.setFontSize(20);
+                doc.setFont(undefined, 'bold');
+                doc.text('C tours E.I.R.L', 105, 20, { align: 'center' });
+                doc.setFontSize(9);
+                doc.setFont(undefined, 'normal');
+                doc.text('Desglose de Costos', 105, 28, { align: 'center' });
+                
+                y = 50;
+                
+                const costs = calculateCosts();
+                const additionalServices = getAdditionalServices();
+                
+                // SERVICIOS ADICIONALES
+                if (additionalServices.length > 0) {
+                    doc.setFillColor(...azulOscuro);
+                    doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
+                    
+                    doc.setTextColor(...blanco);
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('SERVICIOS ADICIONALES', 20, y + 7);
+                    
+                    doc.setFillColor(...dorado);
+                    doc.circle(190, y + 5, 2, 'F');
+                    
+                    y += 15;
+                    
+                    additionalServices.forEach((service, index) => {
+                        if (index % 2 === 0) {
+                            doc.setFillColor(...grisClaro);
+                            doc.roundedRect(15, y - 1, 180, 7, 1, 1, 'F');
+                        }
+                        
+                        doc.setTextColor(...gris);
+                        doc.setFontSize(9);
+                        doc.setFont(undefined, 'normal');
+                        const desc = doc.splitTextToSize(service.description, 135);
+                        doc.text(desc, 20, y + 3.5);
+                        
+                        doc.setFont(undefined, 'bold');
+                        doc.setTextColor(...dorado);
+                        doc.text(`S/ ${service.cost.toFixed(2)}`, 190, y + 3.5, { align: 'right' });
+                        
+                        y += 7;
+                    });
+                    
+                    y += 10;
+                }
+                
+                // DESGLOSE DE COSTOS
+                doc.setFillColor(...azulOscuro);
+                doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
+                
+                doc.setTextColor(...blanco);
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.text('RESUMEN DE COSTOS', 20, y + 7);
+                
+                doc.setFillColor(...dorado);
+                doc.circle(190, y + 5, 2, 'F');
+                
+                y += 15;
+                
+                const costosDetalle = [
+                    ['Costo por Pasajero:', `S/ ${parseFloat(costPerPassenger.value || 0).toFixed(2)}`],
+                    ['Pasajeros:', `${passengers.value} persona(s)`],
+                    ['Subtotal Base:', `S/ ${costs.baseCost.toFixed(2)}`]
+                ];
+                
+                if (costs.additionalCost > 0) {
+                    costosDetalle.push(['Servicios Adicionales:', `S/ ${costs.additionalCost.toFixed(2)}`]);
+                }
+                
+                if (costs.discountAmount > 0) {
+                    costosDetalle.push(['Descuento:', `- S/ ${costs.discountAmount.toFixed(2)}`]);
+                }
+                
+                costosDetalle.push(['Subtotal:', `S/ ${costs.subtotal.toFixed(2)}`]);
+                
+                if (includeIgv.checked) {
+                    costosDetalle.push(['IGV (18%):', `S/ ${costs.taxAmount.toFixed(2)}`]);
+                }
+                
+                costosDetalle.forEach((row, index) => {
+                    if (index % 2 === 0) {
+                        doc.setFillColor(...grisClaro);
+                        doc.roundedRect(15, y - 1, 180, 7, 1, 1, 'F');
+                    }
+                    
+                    doc.setTextColor(...gris);
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'normal');
+                    doc.text(row[0], 20, y + 3.5);
+                    
+                    doc.setFont(undefined, 'bold');
+                    doc.setTextColor(...azulOscuro);
+                    doc.text(row[1], 190, y + 3.5, { align: 'right' });
+                    
+                    y += 7;
+                });
+                
+                y += 5;
+                
+                // TOTAL
+                doc.setFillColor(...dorado);
+                doc.roundedRect(15, y, 180, 14, 2, 2, 'F');
+                
+                doc.setTextColor(...blanco);
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text('TOTAL A PAGAR:', 20, y + 9);
+                doc.setFontSize(16);
+                doc.text(`S/ ${costs.totalCost.toFixed(2)}`, 190, y + 9, { align: 'right' });
+                
+                y += 22;
+                
+                // SERVICIOS INCLUIDOS Y NO INCLUIDOS - MEJORADO
+                const includedList = includedServices.value.split('\n').filter(item => item.trim() !== '');
+                const excludedList = excludedServices.value.split('\n').filter(item => item.trim() !== '');
+                
+                if (includedList.length > 0 || excludedList.length > 0) {
+                    doc.setFillColor(...azulOscuro);
+                    doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
+                    
+                    doc.setTextColor(...blanco);
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('SERVICIOS INCLUIDOS Y EXCLUIDOS', 20, y + 7);
+                    
+                    doc.setFillColor(...dorado);
+                    doc.circle(190, y + 5, 2, 'F');
+                    
+                    y += 15;
+                    
+                    // Dos columnas ordenadas
+                    let yIncluidos = y;
+                    let yExcluidos = y;
+                    
+                    // COLUMNA INCLUIDOS
+                    if (includedList.length > 0) {
+                        doc.setFillColor(240, 255, 240);
+                        doc.roundedRect(15, yIncluidos - 2, 85, 8, 1, 1, 'F');
+                        
+                        doc.setFontSize(10);
+                        doc.setFont(undefined, 'bold');
+                        doc.setTextColor(...verde);
+                        doc.text('Incluidos:', 20, yIncluidos + 3.5);
+                        
+                        yIncluidos += 10;
+                        
+                        doc.setFontSize(8);
+                        doc.setFont(undefined, 'normal');
+                        doc.setTextColor(...gris);
+                        
+                        includedList.forEach(item => {
+                            const lines = doc.splitTextToSize(`• ${item.trim()}`, 75);
+                            doc.text(lines, 20, yIncluidos);
+                            yIncluidos += lines.length * 4;
+                        });
+                    }
+                    
+                    // COLUMNA EXCLUIDOS
+                    if (excludedList.length > 0) {
+                        doc.setFillColor(255, 240, 240);
+                        doc.roundedRect(110, yExcluidos - 2, 85, 8, 1, 1, 'F');
+                        
+                        doc.setFontSize(10);
+                        doc.setFont(undefined, 'bold');
+                        doc.setTextColor(...rojo);
+                        doc.text('No Incluidos:', 115, yExcluidos + 3.5);
+                        
+                        yExcluidos += 10;
+                        
+                        doc.setFontSize(8);
+                        doc.setFont(undefined, 'normal');
+                        doc.setTextColor(...gris);
+                        
+                        excludedList.forEach(item => {
+                            const lines = doc.splitTextToSize(`• ${item.trim()}`, 75);
+                            doc.text(lines, 115, yExcluidos);
+                            yExcluidos += lines.length * 4;
+                        });
+                    }
+                    
+                    y = Math.max(yIncluidos, yExcluidos) + 5;
+                }
+                
+                // RECOMENDACIONES
+                const recList = recommendations.value.split('\n').filter(item => item.trim() !== '');
+                if (recList.length > 0) {
+                    doc.setFillColor(...azulOscuro);
+                    doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
+                    
+                    doc.setTextColor(...blanco);
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('RECOMENDACIONES', 20, y + 7);
+                    
+                    doc.setFillColor(...dorado);
+                    doc.circle(190, y + 5, 2, 'F');
+                    
+                    y += 15;
+                    
+                    doc.setFontSize(8);
+                    doc.setFont(undefined, 'normal');
+                    doc.setTextColor(...gris);
+                    
+                    recList.forEach(rec => {
+                        const lines = doc.splitTextToSize(`• ${rec.trim()}`, 170);
                         doc.text(lines, 20, y);
                         y += lines.length * 4;
                     });
                 }
                 
-                y += 3;
-                if (excludedList.length > 0) {
-                    doc.setFont(undefined, 'bold');
-                    doc.setTextColor(229, 62, 62);
-                    doc.text('No Incluidos:', 110, y - (includedList.length * 4) - 5);
-                    doc.setFont(undefined, 'normal');
-                    doc.setTextColor(50, 50, 50);
-                    let yExcluded = y - (includedList.length * 4);
-                    excludedList.forEach(item => {
-                        const lines = doc.splitTextToSize(`• ${item.trim()}`, 80);
-                        doc.text(lines, 110, yExcluded);
-                        yExcluded += lines.length * 4;
-                    });
-                    y = Math.max(y, yExcluded);
-                }
+                // Pie pagina 2
+                doc.setFillColor(...azulOscuro);
+                doc.rect(0, 277, 210, 20, 'F');
                 
-                y += 8;
-            }
-            
-            // ========== RECOMENDACIONES ==========
-            const recList = recommendations.value.split('\n').filter(item => item.trim() !== '');
-            if (recList.length > 0) {
+                doc.setTextColor(...blanco);
+                doc.setFontSize(8);
+                doc.text('C tours E.I.R.L | RUC: 20603243251 | www.agenciactours.com', 105, 285, { align: 'center' });
+                doc.setFontSize(7);
+                doc.text('Pág. 2 de 3', 195, 291, { align: 'right' });
+                doc.text(quoteNum, 15, 291);
+                
+                // ============================================
+                // PAGINA 3: TERMINOS Y FIRMA
+                // ============================================
+                doc.addPage();
+                y = 20;
+                
+                // Encabezado pagina 3
+                doc.setFillColor(...azulOscuro);
+                doc.rect(0, 0, 210, 35, 'F');
                 doc.setFillColor(...dorado);
-                doc.rect(15, y, 180, 8, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(11);
-                doc.setFont(undefined, 'bold');
-                doc.text('RECOMENDACIONES', 20, y + 5.5);
+                doc.rect(0, 35, 210, 2, 'F');
                 
-                y += 14;
-                doc.setTextColor(50, 50, 50);
+                doc.setTextColor(...blanco);
+                doc.setFontSize(20);
+                doc.setFont(undefined, 'bold');
+                doc.text('C tours E.I.R.L', 105, 20, { align: 'center' });
                 doc.setFontSize(9);
                 doc.setFont(undefined, 'normal');
+                doc.text('Términos y Condiciones', 105, 28, { align: 'center' });
                 
-                recList.forEach(rec => {
-                    const lines = doc.splitTextToSize(`• ${rec.trim()}`, 170);
-                    doc.text(lines, 20, y);
-                    y += lines.length * 4.5;
+                y = 50;
+                
+                // TERMINOS
+                doc.setFillColor(...azulOscuro);
+                doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
+                
+                doc.setTextColor(...blanco);
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.text('TÉRMINOS Y CONDICIONES', 20, y + 7);
+                
+                doc.setFillColor(...dorado);
+                doc.circle(190, y + 5, 2, 'F');
+                
+                y += 15;
+                
+                const terminos = [
+                    'VIGENCIA: Válida 15 días desde emisión.',
+                    'RESERVA: Se requiere el 50% del monto total como anticipo para confirmar la reserva del servicio.',
+                    'PAGO: El 50% restante debera cancelarse antes o al momento de iniciar el servicio contratado.',
+                    'VEHÍCULOS: La empresa se reserva el derecho de asignar vehiculos de categoria similar al solicitado.',
+                    'MODIFICACIONES: Cualquier cambio en fechas, horarios o itinerario puede generar cargos adicionales.',
+                    'CANCELACIONES: Las cancelaciones con menos de 72 horas no tendran devolucion del anticipo pagado.',
+                    'SEGURO: Todos nuestros vehiculos cuentan con SOAT vigente y poliza de responsabilidad civil.'
+                ];
+                
+                doc.setFontSize(8);
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(...gris);
+                
+                terminos.forEach((termino, index) => {
+                    doc.setFont(undefined, 'bold');
+                    doc.setTextColor(...azulOscuro);
+                    doc.text(`${index + 1}.`, 20, y);
+                    
+                    doc.setFont(undefined, 'normal');
+                    doc.setTextColor(...gris);
+                    const lines = doc.splitTextToSize(termino, 165);
+                    doc.text(lines, 26, y);
+                    
+                    y += 6;
                 });
-            }
-            
-            // Pie de página para la segunda página
-            doc.setFillColor(...azulOscuro);
-            doc.rect(0, 277, 210, 20, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(8);
-            doc.setFont(undefined, 'normal');
-            doc.text('C tours | +51 992 248 858 | www.agenciactours.com', 105, 285, { align: 'center' });
-            doc.text('Página 2 de 3', 195, 285, { align: 'right' });
-            
-            // ========== PÁGINA 3 - TÉRMINOS ==========
-            doc.addPage();
-            y = 20;
-            
-            // Encabezado página 3
-            doc.setFillColor(...azulOscuro);
-            doc.rect(0, 0, 210, 30, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(18);
-            doc.setFont(undefined, 'bold');
-            doc.text('C tours E.I.R.L', 105, 20, { align: 'center' });
-            
-            y = 50;
-            
-            // ========== TÉRMINOS Y CONDICIONES ==========
-            doc.setFillColor(...dorado);
-            doc.rect(15, y, 180, 8, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(11);
-            doc.setFont(undefined, 'bold');
-            doc.text('TÉRMINOS Y CONDICIONES', 20, y + 5.5);
-            
-            y += 14;
-            doc.setTextColor(50, 50, 50);
-            doc.setFontSize(9);
-            doc.setFont(undefined, 'normal');
-            
-            const terminos = [
-                '• Esta cotización es válida por 15 días a partir de la fecha de emisión.',
-                '• Para confirmar el servicio, se requiere un anticipo del 50% del valor total.',
-                '• El pago restante debe realizarse al momento de la prestación del servicio.',
-                '• Cualquier cambio en el itinerario puede afectar el costo final.',
-                '• La empresa se reserva el derecho de modificar vehículos por otros de similar categoría.'
-            ];
-            
-            terminos.forEach(termino => {
-                const lines = doc.splitTextToSize(termino, 170);
-                doc.text(lines, 20, y);
-                y += lines.length * 5 + 2;
-            });
-            
-            y += 20;
-            
-            // ========== MENSAJE FINAL ==========
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
-            doc.setTextColor(...azulOscuro);
-            doc.text('¡Gracias por preferir nuestros servicios!', 105, y, { align: 'center' });
-            y += 10;
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.text('Estamos comprometidos con brindarle una experiencia', 105, y, { align: 'center' });
-            y += 5;
-            doc.text('de movilización segura y confortable.', 105, y, { align: 'center' });
-            
-            y += 20;
-            
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'bold');
-            doc.text('Gerente General', 105, y, { align: 'center' });
-            y += 5;
-            doc.setFont(undefined, 'normal');
-            doc.text('César De la Cruz Vilcapoma', 105, y, { align: 'center' });
-            y += 5;
-
-            // AGREGAR LÍNEA PARA FIRMA
-            doc.setDrawColor(0, 0, 0); // Color negro para la línea
-            doc.setLineWidth(0.5); // Grosor de la línea
-            doc.line(80, y, 130, y); // Línea horizontal centrada (x1, y1, x2, y2)
-            y += 8; // Espacio después de la línea
-
-            doc.text('DNI: 74039078', 105, y, { align: 'center' });
-            y += 5;
-            doc.text('RUC: 20603243251', 105, y, { align: 'center' });
-            y += 5;
-            doc.text('Agencia de Viajes y Transportes de Turismo C tours E.I.R.L', 105, y, { align: 'center' });
-            
-            // Pie de página para la tercera página
-            doc.setFillColor(...azulOscuro);
-            doc.rect(0, 277, 210, 20, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(8);
-            doc.setFont(undefined, 'italic');
-            doc.text('C tours | +51 992 248 858 | www.agenciactours.com', 105, 285, { align: 'center' });
-            doc.text('Página 3 de 3', 195, 285, { align: 'right' });
-            
-            // AQUÍ VA EL NUEVO CÓDIGO (reemplaza el doc.save anterior)
-            // Generar el PDF como Blob
-            const pdfBlob = doc.output('blob');
-            const fileName = `Cotizacion_CTours_${quoteNum}.pdf`;
-
-            // Guardar para compartir después
-            currentPdfBlob = pdfBlob;
-            currentPdfName = fileName;
-
-            // Mostrar botón de compartir
-            sharePdfBtn.classList.remove('hidden');
-
-            // Descargar automáticamente
-            doc.save(fileName);
-
-            // Verificar si el dispositivo soporta Web Share API
-            if (navigator.share) {
-                // Mostrar mensaje de éxito con opción de compartir
+                
+                y += 10;
+                
+                // DATOS BANCARIOS
+                doc.setFillColor(...azulOscuro);
+                doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
+                
+                doc.setTextColor(...blanco);
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.text('DATOS BANCARIOS', 20, y + 7);
+                
+                doc.setFillColor(...dorado);
+                doc.circle(190, y + 5, 2, 'F');
+                
+                y += 15;
+                
+                doc.setFillColor(...grisClaro);
+                doc.roundedRect(15, y, 180, 20, 2, 2, 'F');
+                
+                doc.setTextColor(...azulOscuro);
+                doc.setFontSize(9);
+                doc.setFont(undefined, 'bold');
+                doc.text('RUC:', 20, y + 5);
+                doc.setFont(undefined, 'normal');
+                doc.text('20603243251', 40, y + 5);
+                
+                doc.setFont(undefined, 'bold');
+                doc.text('Banco:', 20, y + 10);
+                doc.setFont(undefined, 'normal');
+                doc.text('BCP', 40, y + 10);
+                
+                doc.setFont(undefined, 'bold');
+                doc.text('Cuenta:', 20, y + 15);
+                doc.setFont(undefined, 'normal');
+                doc.text('[Número de Cuenta]', 40, y + 15);
+                
+                doc.setFont(undefined, 'bold');
+                doc.text('CCI:', 110, y + 5);
+                doc.setFont(undefined, 'normal');
+                doc.text('[Código CCI]', 125, y + 5);
+                
+                y += 30;
+                
+                // MENSAJE
+                doc.setFillColor(...dorado);
+                doc.roundedRect(15, y, 180, 20, 3, 3, 'F');
+                
+                doc.setTextColor(...blanco);
+                doc.setFontSize(13);
+                doc.setFont(undefined, 'bold');
+                doc.text('Gracias por Confiar en Nosotros', 105, y + 8, { align: 'center' });
+                doc.setFontSize(9);
+                doc.setFont(undefined, 'normal');
+                doc.text('Nos comprometemos a brindarle un servicio seguro, confortable y de calidad\n Estamos a su disposición para cualquier consulta adicional.', 105, y + 14, { align: 'center' });
+                
+                y += 30;
+                
+                // FIRMA DEL GERENTE
+                doc.setTextColor(...azulOscuro);
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'bold');
+                doc.text('Atentamente,', 105, y, { align: 'center' });
+                
+                y += 15;
+                
+                // Linea de firma
+                doc.setDrawColor(...azulOscuro);
+                doc.setLineWidth(0.5);
+                doc.line(75, y, 135, y);
+                
+                y += 6;
+                
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'bold');
+                doc.text('César De la Cruz Vilcapoma', 105, y, { align: 'center' });
+                
+                y += 5;
+                
+                doc.setFontSize(9);
+                doc.setFont(undefined, 'normal');
+                doc.text('Gerente General', 105, y, { align: 'center' });
+                
+                y += 4;
+                
+                doc.setFontSize(8);
+                doc.text('DNI: 74039078', 105, y, { align: 'center' });
+                
+                y += 4;
+                
+                doc.setFont(undefined, 'bold');
+                doc.text('RUC: 20603243251', 105, y, { align: 'center' });
+                
+                // Pie pagina 3
+                doc.setFillColor(...azulOscuro);
+                doc.rect(0, 277, 210, 20, 'F');
+                
+                doc.setTextColor(...blanco);
+                doc.setFontSize(8);
+                doc.text('C tours E.I.R.L | RUC: 20603243251 | www.agenciactours.com', 105, 285, { align: 'center' });
+                doc.setFontSize(7);
+                doc.text('Pág. 3 de 3', 195, 291, { align: 'right' });
+                doc.text(quoteNum, 15, 291);
+                
+                // GUARDAR PDF
                 setTimeout(() => {
-                    if (confirm('✅ PDF generado exitosamente.\n\n¿Desea compartirlo ahora por WhatsApp, correo u otras aplicaciones?')) {
-                        sharePdf();
+                    const pdfBlob = doc.output('blob');
+                    const fileName = `Cotizacion_CTours_${quoteNum}.pdf`;
+                    
+                    currentPdfBlob = pdfBlob;
+                    currentPdfName = fileName;
+                    
+                    sharePdfBtn.classList.remove('hidden');
+                    doc.save(fileName);
+                    
+                    if (navigator.share) {
+                        setTimeout(() => {
+                            if (confirm('✅ PDF generado exitosamente.\n\nDesea compartirlo ahora?')) {
+                                sharePdf();
+                            }
+                        }, 500);
+                    } else {
+                        alert('✅ PDF generado exitosamente.');
                     }
-                }, 500);
-            } else {
-                alert('✅ PDF generado y descargado exitosamente.\n\nPuede encontrarlo en sus descargas.');
-            }
-        };
-
-        // Si hay error al cargar la imagen, generar PDF sin logo
-        img.onerror = async function() {
-            console.warn('No se pudo cargar el logo, generando PDF sin imagen');
+                }, 200);
+            };
             
-            const pdfBlob = doc.output('blob');
-            const fileName = `Cotizacion_CTours_${quoteNum}.pdf`;
-            
-            currentPdfBlob = pdfBlob;
-            currentPdfName = fileName;
-            sharePdfBtn.classList.remove('hidden');
-            
-            doc.save(fileName);
-            
-            if (navigator.share) {
-                setTimeout(() => {
-                    if (confirm('✅ PDF generado exitosamente.\n\n¿Desea compartirlo ahora?')) {
-                        sharePdf();
-                    }
-                }, 500);
-            } else {
-                alert('✅ PDF generado y descargado exitosamente.');
-            }
-        };
-    }
+            img.onerror = function() {
+                alert('Error: No se pudo cargar el logo.');
+            };
+        }
         
         async function sharePdf() {
             if (!currentPdfBlob || !currentPdfName) {
@@ -2469,6 +3538,56 @@
         endDate.min = today;
         
         calculateCosts();
+    </script>
+
+    <script>
+        // Script de precarga
+        window.addEventListener('load', function() {
+            const preloader = document.getElementById('preloader');
+            
+            // Esperar 2 segundos y luego ocultar la precarga
+            setTimeout(function() {
+                preloader.classList.add('fade-out');
+                
+                // Remover completamente del DOM después de la animación
+                setTimeout(function() {
+                    preloader.style.display = 'none';
+                }, 500);
+            }, 2000);
+        });
+
+        // ========== MODAL ACERCA DE ==========
+        const aboutBtn = document.getElementById('aboutBtn');
+        const aboutModal = document.getElementById('aboutModal');
+        const closeModal = document.getElementById('closeModal');
+
+        // Abrir modal
+        aboutBtn.addEventListener('click', function() {
+            aboutModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevenir scroll
+        });
+
+        // Cerrar modal con la X
+        closeModal.addEventListener('click', function() {
+            aboutModal.classList.add('hidden');
+            document.body.style.overflow = 'auto'; // Restaurar scroll
+        });
+
+        // Cerrar modal al hacer clic fuera
+        aboutModal.addEventListener('click', function(e) {
+            if (e.target === aboutModal) {
+                aboutModal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Cerrar modal con la tecla ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !aboutModal.classList.contains('hidden')) {
+                aboutModal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+        });
     </script>
 </body>
 </html>
