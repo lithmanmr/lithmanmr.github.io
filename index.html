@@ -2382,7 +2382,7 @@
                 <div class="modal-body">
                     <h3><i class="fas fa-file-invoice"></i> Sistema de Cotización C tours</h3>
                     <p><strong>Versión:</strong> 1.0.0</p>
-                    <p><strong>Fecha:</strong> Febrero 2025</p>
+                    <p><strong>Copyright:</strong> @2026 Derechos reservados</p>
                     
                     <div class="modal-divider"></div>
                     
@@ -2810,7 +2810,7 @@
                         // Texto completo en 3 líneas
                         doc.setFontSize(6);
                         doc.setTextColor(...blanco);
-                        doc.setFont(undefined, 'bold');
+                        doc.setFont(undefined, 'italic');
                         doc.text('Visita nuestra web', 183, 54, { align: 'center' });
                         
                         // Línea decorativa
@@ -3109,118 +3109,166 @@
                 doc.text(`S/ ${costs.totalCost.toFixed(2)}`, 190, y + 9, { align: 'right' });
                 
                 y += 22;
-                
-                // SERVICIOS INCLUIDOS Y NO INCLUIDOS - MEJORADO
+
+                // ============================================
+                // VERIFICAR SI HAY CONTENIDO PARA PÁGINA 3
+                // ============================================
                 const includedList = includedServices.value.split('\n').filter(item => item.trim() !== '');
                 const excludedList = excludedServices.value.split('\n').filter(item => item.trim() !== '');
-                
-                if (includedList.length > 0 || excludedList.length > 0) {
-                    doc.setFillColor(...azulOscuro);
-                    doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
-                    
-                    doc.setTextColor(...blanco);
-                    doc.setFontSize(11);
-                    doc.setFont(undefined, 'bold');
-                    doc.text('SERVICIOS INCLUIDOS Y EXCLUIDOS', 20, y + 7);
-                    
-                    doc.setFillColor(...dorado);
-                    doc.circle(190, y + 5, 2, 'F');
-                    
-                    y += 15;
-                    
-                    // Dos columnas ordenadas
-                    let yIncluidos = y;
-                    let yExcluidos = y;
-                    
-                    // COLUMNA INCLUIDOS
-                    if (includedList.length > 0) {
-                        doc.setFillColor(240, 255, 240);
-                        doc.roundedRect(15, yIncluidos - 2, 85, 8, 1, 1, 'F');
-                        
-                        doc.setFontSize(10);
-                        doc.setFont(undefined, 'bold');
-                        doc.setTextColor(...verde);
-                        doc.text('Incluidos:', 20, yIncluidos + 3.5);
-                        
-                        yIncluidos += 10;
-                        
-                        doc.setFontSize(8);
-                        doc.setFont(undefined, 'normal');
-                        doc.setTextColor(...gris);
-                        
-                        includedList.forEach(item => {
-                            const lines = doc.splitTextToSize(`• ${item.trim()}`, 75);
-                            doc.text(lines, 20, yIncluidos);
-                            yIncluidos += lines.length * 4;
-                        });
-                    }
-                    
-                    // COLUMNA EXCLUIDOS
-                    if (excludedList.length > 0) {
-                        doc.setFillColor(255, 240, 240);
-                        doc.roundedRect(110, yExcluidos - 2, 85, 8, 1, 1, 'F');
-                        
-                        doc.setFontSize(10);
-                        doc.setFont(undefined, 'bold');
-                        doc.setTextColor(...rojo);
-                        doc.text('No Incluidos:', 115, yExcluidos + 3.5);
-                        
-                        yExcluidos += 10;
-                        
-                        doc.setFontSize(8);
-                        doc.setFont(undefined, 'normal');
-                        doc.setTextColor(...gris);
-                        
-                        excludedList.forEach(item => {
-                            const lines = doc.splitTextToSize(`• ${item.trim()}`, 75);
-                            doc.text(lines, 115, yExcluidos);
-                            yExcluidos += lines.length * 4;
-                        });
-                    }
-                    
-                    y = Math.max(yIncluidos, yExcluidos) + 5;
-                }
-                
-                // RECOMENDACIONES
                 const recList = recommendations.value.split('\n').filter(item => item.trim() !== '');
-                if (recList.length > 0) {
-                    doc.setFillColor(...azulOscuro);
-                    doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
-                    
-                    doc.setTextColor(...blanco);
-                    doc.setFontSize(11);
-                    doc.setFont(undefined, 'bold');
-                    doc.text('RECOMENDACIONES', 20, y + 7);
-                    
-                    doc.setFillColor(...dorado);
-                    doc.circle(190, y + 5, 2, 'F');
-                    
-                    y += 15;
-                    
-                    doc.setFontSize(8);
-                    doc.setFont(undefined, 'normal');
-                    doc.setTextColor(...gris);
-                    
-                    recList.forEach(rec => {
-                        const lines = doc.splitTextToSize(`• ${rec.trim()}`, 170);
-                        doc.text(lines, 20, y);
-                        y += lines.length * 4;
-                    });
-                }
-                
-                // Pie pagina 2
+
+                const hasServicesOrRecommendations = includedList.length > 0 || excludedList.length > 0 || recList.length > 0;
+
+                // ============================================
+                // PIE DE PÁGINA 2
+                // ============================================
                 doc.setFillColor(...azulOscuro);
                 doc.rect(0, 277, 210, 20, 'F');
-                
+
                 doc.setTextColor(...blanco);
                 doc.setFontSize(8);
                 doc.text('C tours E.I.R.L | RUC: 20603243251 | www.agenciactours.com', 105, 285, { align: 'center' });
                 doc.setFontSize(7);
-                doc.text('Pág. 2 de 3', 195, 291, { align: 'right' });
+
+                // Ajustar número de página según si existe página 3 o no
+                if (hasServicesOrRecommendations) {
+                    doc.text('Pág. 2 de 4', 195, 291, { align: 'right' });
+                } else {
+                    doc.text('Pág. 2 de 3', 195, 291, { align: 'right' });
+                }
                 doc.text(quoteNum, 15, 291);
+
+                // ============================================
+                // PÁGINA 3: SERVICIOS Y RECOMENDACIONES (SOLO SI HAY CONTENIDO)
+                // ============================================
+                if (hasServicesOrRecommendations) {
+                    doc.addPage();
+                    y = 20;
+                    
+                    // Encabezado página 3
+                    doc.setFillColor(...azulOscuro);
+                    doc.rect(0, 0, 210, 35, 'F');
+                    doc.setFillColor(...dorado);
+                    doc.rect(0, 35, 210, 2, 'F');
+                    
+                    doc.setTextColor(...blanco);
+                    doc.setFontSize(20);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('C tours E.I.R.L', 105, 20, { align: 'center' });
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'normal');
+                    doc.text('Servicios y Recomendaciones', 105, 28, { align: 'center' });
+                    
+                    y = 50;
+                    
+                    // SERVICIOS INCLUIDOS Y NO INCLUIDOS (solo si hay al menos uno)
+                    if (includedList.length > 0 || excludedList.length > 0) {
+                        doc.setFillColor(...azulOscuro);
+                        doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
+                        
+                        doc.setTextColor(...blanco);
+                        doc.setFontSize(11);
+                        doc.setFont(undefined, 'bold');
+                        doc.text('SERVICIOS INCLUIDOS Y EXCLUIDOS', 20, y + 7);
+                        
+                        doc.setFillColor(...dorado);
+                        doc.circle(190, y + 5, 2, 'F');
+                        
+                        y += 15;
+                        
+                        // Dos columnas ordenadas
+                        let yIncluidos = y;
+                        let yExcluidos = y;
+                        
+                        // COLUMNA INCLUIDOS
+                        if (includedList.length > 0) {
+                            doc.setFillColor(240, 255, 240);
+                            doc.roundedRect(15, yIncluidos - 2, 85, 8, 1, 1, 'F');
+                            
+                            doc.setFontSize(10);
+                            doc.setFont(undefined, 'bold');
+                            doc.setTextColor(...verde);
+                            doc.text('Incluidos:', 20, yIncluidos + 3.5);
+                            
+                            yIncluidos += 10;
+                            
+                            doc.setFontSize(8);
+                            doc.setFont(undefined, 'normal');
+                            doc.setTextColor(...gris);
+                            
+                            includedList.forEach(item => {
+                                const lines = doc.splitTextToSize(`• ${item.trim()}`, 75);
+                                doc.text(lines, 20, yIncluidos);
+                                yIncluidos += lines.length * 4;
+                            });
+                        }
+                        
+                        // COLUMNA EXCLUIDOS
+                        if (excludedList.length > 0) {
+                            doc.setFillColor(255, 240, 240);
+                            doc.roundedRect(110, yExcluidos - 2, 85, 8, 1, 1, 'F');
+                            
+                            doc.setFontSize(10);
+                            doc.setFont(undefined, 'bold');
+                            doc.setTextColor(...rojo);
+                            doc.text('No Incluidos:', 115, yExcluidos + 3.5);
+                            
+                            yExcluidos += 10;
+                            
+                            doc.setFontSize(8);
+                            doc.setFont(undefined, 'normal');
+                            doc.setTextColor(...gris);
+                            
+                            excludedList.forEach(item => {
+                                const lines = doc.splitTextToSize(`• ${item.trim()}`, 75);
+                                doc.text(lines, 115, yExcluidos);
+                                yExcluidos += lines.length * 4;
+                            });
+                        }
+                        
+                        y = Math.max(yIncluidos, yExcluidos) + 10;
+                    }
+                    
+                    // RECOMENDACIONES (solo si hay)
+                    if (recList.length > 0) {
+                        doc.setFillColor(...azulOscuro);
+                        doc.roundedRect(15, y, 180, 10, 2, 2, 'F');
+                        
+                        doc.setTextColor(...blanco);
+                        doc.setFontSize(11);
+                        doc.setFont(undefined, 'bold');
+                        doc.text('RECOMENDACIONES', 20, y + 7);
+                        
+                        doc.setFillColor(...dorado);
+                        doc.circle(190, y + 5, 2, 'F');
+                        
+                        y += 15;
+                        
+                        doc.setFontSize(8);
+                        doc.setFont(undefined, 'normal');
+                        doc.setTextColor(...gris);
+                        
+                        recList.forEach(rec => {
+                            const lines = doc.splitTextToSize(`• ${rec.trim()}`, 170);
+                            doc.text(lines, 20, y);
+                            y += lines.length * 4;
+                        });
+                    }
+                    
+                    // Pie de página 3
+                    doc.setFillColor(...azulOscuro);
+                    doc.rect(0, 277, 210, 20, 'F');
+                    
+                    doc.setTextColor(...blanco);
+                    doc.setFontSize(8);
+                    doc.text('C tours E.I.R.L | RUC: 20603243251 | www.agenciactours.com', 105, 285, { align: 'center' });
+                    doc.setFontSize(7);
+                    doc.text('Pág. 3 de 4', 195, 291, { align: 'right' });
+                    doc.text(quoteNum, 15, 291);
+                }
                 
                 // ============================================
-                // PAGINA 3: TERMINOS Y FIRMA
+                // PAGINA 4: TERMINOS Y FIRMA
                 // ============================================
                 doc.addPage();
                 y = 20;
@@ -3335,7 +3383,7 @@
                 doc.text('Gracias por Confiar en Nosotros', 105, y + 8, { align: 'center' });
                 doc.setFontSize(9);
                 doc.setFont(undefined, 'normal');
-                doc.text('Nos comprometemos a brindarle un servicio seguro, confortable y de calidad\n Estamos a su disposición para cualquier consulta adicional.', 105, y + 14, { align: 'center' });
+                doc.text('Nos comprometemos a brindarle un servicio seguro, confortable y de calidad,\n estamos a su disposición para cualquier consulta adicional.', 105, y + 14, { align: 'center' });
                 
                 y += 30;
                 
@@ -3382,7 +3430,12 @@
                 doc.setFontSize(8);
                 doc.text('C tours E.I.R.L | RUC: 20603243251 | www.agenciactours.com', 105, 285, { align: 'center' });
                 doc.setFontSize(7);
-                doc.text('Pág. 3 de 3', 195, 291, { align: 'right' });
+                // Número de página ajustado según si existe página 3 o no
+                if (hasServicesOrRecommendations) {
+                    doc.text('Pág. 4 de 4', 195, 291, { align: 'right' });
+                } else {
+                    doc.text('Pág. 3 de 3', 195, 291, { align: 'right' });
+                }
                 doc.text(quoteNum, 15, 291);
                 
                 // GUARDAR PDF
