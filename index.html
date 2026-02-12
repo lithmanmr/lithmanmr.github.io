@@ -2717,6 +2717,15 @@
             img.src = logoPath;
             
             img.onload = function() {
+
+                // ============================================
+                // CALCULAR TOTAL DE PÁGINAS AL INICIO
+                // ============================================
+                const includedList = includedServices.value.split('\n').filter(item => item.trim() !== '');
+                const excludedList = excludedServices.value.split('\n').filter(item => item.trim() !== '');
+                const recList = recommendations.value.split('\n').filter(item => item.trim() !== '');
+                const hasServicesOrRecommendations = includedList.length > 0 || excludedList.length > 0 || recList.length > 0;
+                const totalPages = hasServicesOrRecommendations ? 4 : 3;
                 // ============================================
                 // PAGINA 1: PORTADA Y DATOS PRINCIPALES
                 // ============================================
@@ -2978,7 +2987,7 @@
                 doc.setFontSize(8);
                 doc.text('C tours E.I.R.L | RUC: 20603243251 | www.agenciactours.com', 105, 285, { align: 'center' });
                 doc.setFontSize(7);
-                doc.text('Pág. 1 de 3', 195, 291, { align: 'right' });
+                doc.text(`Pág. 1 de ${totalPages}`, 195, 291, { align: 'right' });
                 doc.text(quoteNum, 15, 291);
                 
                 // ============================================
@@ -3109,15 +3118,6 @@
                 doc.text(`S/ ${costs.totalCost.toFixed(2)}`, 190, y + 9, { align: 'right' });
                 
                 y += 22;
-
-                // ============================================
-                // VERIFICAR SI HAY CONTENIDO PARA PÁGINA 3
-                // ============================================
-                const includedList = includedServices.value.split('\n').filter(item => item.trim() !== '');
-                const excludedList = excludedServices.value.split('\n').filter(item => item.trim() !== '');
-                const recList = recommendations.value.split('\n').filter(item => item.trim() !== '');
-
-                const hasServicesOrRecommendations = includedList.length > 0 || excludedList.length > 0 || recList.length > 0;
 
                 // ============================================
                 // PIE DE PÁGINA 2
@@ -3441,22 +3441,43 @@
                 // GUARDAR PDF
                 setTimeout(() => {
                     const pdfBlob = doc.output('blob');
-                    const fileName = `Cotizacion_CTours_${quoteNum}.pdf`;
+                    
+                    // Obtener nombre del cliente y limpiarlo para nombre de archivo
+                    let nombreCliente = clientName.value.trim();
+                    
+                    // Limpiar caracteres no permitidos en nombres de archivo
+                    nombreCliente = nombreCliente
+                        .replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\s]/g, '') // Eliminar caracteres especiales
+                        .replace(/\s+/g, '_') // Reemplazar espacios por guiones bajos
+                        .substring(0, 50); // Limitar longitud máxima
+                    
+                    // Si no hay nombre, usar "Cliente"
+                    if (!nombreCliente) {
+                        nombreCliente = 'Cliente';
+                    }
+                    
+                    // Crear nombre de archivo con formato: Cotizacion_NombreCliente_NumCotizacion.pdf
+                    const fileName = `Cotizacion_${nombreCliente}_${quoteNum}.pdf`;
                     
                     currentPdfBlob = pdfBlob;
                     currentPdfName = fileName;
                     
-                    sharePdfBtn.classList.remove('hidden');
+                    // PRIMERO: DESCARGAR el PDF
                     doc.save(fileName);
                     
+                    // SEGUNDO: Mostrar botón de compartir
+                    sharePdfBtn.classList.remove('hidden');
+                    
+                    // TERCERO: Preguntar si desea compartir (SOLO en dispositivos móviles)
                     if (navigator.share) {
                         setTimeout(() => {
-                            if (confirm('✅ PDF generado exitosamente.\n\nDesea compartirlo ahora?')) {
+                            if (confirm('✅ PDF descargado exitosamente.\n\n¿Desea compartirlo ahora?')) {
                                 sharePdf();
                             }
                         }, 500);
                     } else {
-                        alert('✅ PDF generado exitosamente.');
+                        // En PC solo mostrar mensaje de éxito
+                        alert('✅ PDF generado y descargado exitosamente.');
                     }
                 }, 200);
             };
